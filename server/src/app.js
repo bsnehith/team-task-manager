@@ -12,9 +12,21 @@ import userRoutes from "./modules/users/user.routes.js";
 
 const app = express();
 
+function normalizeOrigin(value) {
+  return typeof value === "string" ? value.replace(/\/+$/, "") : value;
+}
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const requestOrigin = normalizeOrigin(origin);
+      const allowedOrigins = [normalizeOrigin(env.CLIENT_URL), "http://localhost:5173"];
+      if (allowedOrigins.includes(requestOrigin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
